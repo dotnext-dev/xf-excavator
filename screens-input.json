@@ -1,0 +1,12 @@
+{
+  "$comment": "Developer writes this. Maps each screen to its source files and snapshot names. Used by /analyze-behaviors.",
+  "screens": [
+    {
+      "name": "Login",
+      "xaml": "src/FlyMe/Views/LoginPage.xaml",
+      "codeBehind": "src/FlyMe/Views/LoginPage.xaml.cs",
+      "viewModel": "src/FlyMe/ViewModels/LoginViewModel.cs",
+      "snapshots": ["xf_Login_Empty", "xf_Login_Filled"]
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "$comment": "Map human-readable scope names to project paths. Used by BuildTools and RoslynTools.",
+  "UI": "src/FlyMe.UWP/FlyMe.UWP.csproj",
+  "Shared": "src/FlyMe/FlyMe.csproj",
+  "Tests": "tests/",
+  "All": "FlyMe.sln"
+}

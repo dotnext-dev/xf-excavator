@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "migration-tools": {
+      "command": "dotnet",
+      "args": ["run", "--project", "./src/McpServer/McpServer.csproj"],
+      "env": {
+        "SPY_CONNECT_TIMEOUT_MS": "10000",
+        "BUILD_TIMEOUT_SEC": "180"
+      }
+    }
+  }
+}
