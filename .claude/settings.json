@@ -1,0 +1,76 @@
+{
+  "$comment": "Per-agent rule toggles + shared file filters. Each agent enables a different rule subset.",
+
+  "agents": {
+
+    "reviewer": {
+      "description": "Code review — bugs, perf, anti-patterns, simplicity",
+      "rules": {
+        "async-await":           { "enabled": true  },
+        "thread-management":     { "enabled": true  },
+        "autofac":               { "enabled": true  },
+        "reactive-extensions":   { "enabled": true  },
+        "unused-code":           { "enabled": true  },
+        "migration-xf-uwp":     { "enabled": false, "note": "Reviewer doesn't do XF→UWP migration" },
+        "migration-uwp-winui":   { "enabled": true  },
+        "csharp-best-practices": { "enabled": true  },
+        "simplicity":            { "enabled": true  },
+        "project-rules":         { "enabled": true  }
+      }
+    },
+
+    "migrator": {
+      "description": "XF→UWP migration execution via MCP tools (spy, build, roslyn, flows)",
+      "rules": {
+        "migration-xf-uwp":     { "enabled": true,  "note": "Primary: XF→UWP control/namespace/API mappings" },
+        "migration-uwp-winui":   { "enabled": false, "note": "Future hop — not during XF→UWP phase" },
+        "async-await":           { "enabled": true,  "note": "Modernize async patterns during migration" },
+        "thread-management":     { "enabled": true,  "note": "Replace threads with async where possible" },
+        "csharp-best-practices": { "enabled": true,  "note": "Fix basic issues discovered during migration" },
+        "autofac":               { "enabled": false },
+        "reactive-extensions":   { "enabled": false },
+        "unused-code":           { "enabled": false },
+        "simplicity":            { "enabled": false },
+        "project-rules":         { "enabled": true,  "note": "Project DO/DON'T rules apply during migration" }
+      },
+      "mcp_tools": {
+        "$comment": "MCP tool groups available to the migrator. These are provided by the MCP server, not toggled here — listed for documentation.",
+        "SpyTools":    "GetVisualTree, SaveSnapshot, ListSnapshots, GetSnapshot, DoAction, GetNavigation",
+        "BuildTools":  "Build, GetBuildDiagnostics, ListFiles, GetPackageRefs",
+        "TestTools":   "RunTests, RunFlow",
+        "RoslynTools":  "AnalyzeClass, FindMigrationSurface, FindImplementations, GetDependencyGraph, AnalyzeXamlBindings, SummarizeProject"
+      }
+    }
+
+  },
+
+  "review": {
+    "max_file_size_lines": 2000,
+    "skip_generated_files": true,
+    "generated_file_patterns": [
+      "*.Designer.cs",
+      "*.g.cs",
+      "*.g.i.cs",
+      "*/Migrations/*.cs"
+    ],
+    "skip_paths": [
+      "bin/",
+      "obj/",
+      "packages/",
+      "TestResults/",
+      "node_modules/",
+      ".vs/"
+    ]
+  },
+
+  "snapshots": {
+    "$comment": "Comparison tolerances for snapshot diff (Section 11.2)",
+    "exact_match": ["kind", "id", "value", "enabled", "interactive", "visible", "checked", "itemCount"],
+    "approximate": {
+      "width_height_tolerance_pct": 10,
+      "position_tolerance_px": 20,
+      "fontSize_tolerance_pt": 1
+    },
+    "informational_only": ["foreground", "background", "fontWeight", "opacity"]
+  }
+}

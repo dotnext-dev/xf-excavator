@@ -1,305 +1,189 @@
-# Migration Toolkit (Removing Xamarin.Forms)
+# Migration Toolkit — Claude Code Agent Configuration
 
-AI-assisted migration of Xamarin.Forms → UWP → WinUI applications using Claude Code, runtime inspection, and snapshot-based regression testing.
+Two agents in one repo: a **Reviewer** for code quality and a **Migrator** for XF → UWP migration execution using MCP tools (spy, build, roslyn, flow runner).
 
-## Architecture
+Based on REQUIREMENTS.md — an AI-assisted migration toolkit using runtime inspection, snapshot-based regression testing, and Roslyn analysis.
 
-```mermaid
-graph LR
-    CC["🤖 Claude Code  (orchestrator)"]
-    MCP["⚙️ MCP Server  (.NET 10)"]
-    SPY["👁️ AppSpy  (in UWP app)"]
-    VT["🖼️ UWP Visual Tree"]
-    FR["▶️ Flow Runner  (.NET 10)"]
-    ROS["🔍 Roslyn Engine"]
-    BUILD["🔨 dotnet build"]
-
-    CC <-->|"stdio  (MCP JSON-RPC)"| MCP
-    MCP <-->|"named pipe  (StreamJsonRpc)"| SPY
-    SPY <-->|"UI thread  dispatch"| VT
-    FR <-->|"named pipe  (StreamJsonRpc)"| SPY
-    MCP --> ROS
-    MCP --> BUILD
-
-    style CC fill:#7c3aed,color:#fff,stroke:none
-    style MCP fill:#2563eb,color:#fff,stroke:none
-    style SPY fill:#059669,color:#fff,stroke:none
-    style VT fill:#059669,color:#fff,stroke:none
-    style FR fill:#d97706,color:#fff,stroke:none
-    style ROS fill:#2563eb,color:#fff,stroke:none
-    style BUILD fill:#2563eb,color:#fff,stroke:none
-```
-
-Claude Code reads your source, inspects the running app through the spy, migrates code, builds, and verifies the result by comparing before/after snapshots — all through MCP tools.
-
-## Migration Workflow
-
-```mermaid
-graph TD
-    A["📸 Capture Baselines  Snapshot all screens — phase=xf"]
-    B["✏️ Migrate XAML  Claude transforms XF → UWP"]
-    C["🔨 Build & Fix  Auto-fix known errors"]
-    D["📸 Verify  Snapshot same screens — phase=uwp"]
-    E{"🔍 Compare  Snapshots"}
-    F["✅ Screen Done"]
-    G["🔧 Fix Regressions"]
-
-    A --> B --> C --> D --> E
-    E -->|"✓ Match"| F
-    E -->|"🚩 Regression"| G --> C
-    F -->|"Next screen"| B
-
-    style A fill:#7c3aed,color:#fff,stroke:none
-    style B fill:#2563eb,color:#fff,stroke:none
-    style C fill:#d97706,color:#fff,stroke:none
-    style D fill:#7c3aed,color:#fff,stroke:none
-    style E fill:#475569,color:#fff,stroke:none
-    style F fill:#059669,color:#fff,stroke:none
-    style G fill:#dc2626,color:#fff,stroke:none
-```
-
-## Regression Testing
-
-```mermaid
-graph LR
-    subgraph BEFORE["Phase: xf — before migration"]
-        XF["XF App"] --> UWP1["UWP Controls"] --> SPY1["Spy captures  abstract state"]
-        SPY1 --> SNAP1["📸 xf_Login_Empty  📸 xf_Login_Filled  📸 xf_Dashboard"]
-    end
-
-    subgraph AFTER["Phase: uwp — after migration"]
-        NUWP["Native UWP App"] --> UWP2["UWP Controls"] --> SPY2["Spy captures  abstract state"]
-        SPY2 --> SNAP2["📸 uwp_Login_Empty  📸 uwp_Login_Filled  📸 uwp_Dashboard"]
-    end
-
-    SNAP1 --> DIFF["🤖 Claude  Compares"]
-    SNAP2 --> DIFF
-    DIFF --> R1["✓ Match"]
-    DIFF --> R2["⚠ Minor"]
-    DIFF --> R3["🚩 Regression"]
-
-    style BEFORE fill:#1e1b4b,color:#fff,stroke:#4338ca
-    style AFTER fill:#052e16,color:#fff,stroke:#16a34a
-    style DIFF fill:#7c3aed,color:#fff,stroke:none
-    style R1 fill:#059669,color:#fff,stroke:none
-    style R2 fill:#d97706,color:#fff,stroke:none
-    style R3 fill:#dc2626,color:#fff,stroke:none
-```
-
-## Flow Runner Pipeline
-
-```mermaid
-graph LR
-    DEV["👤 Developer writes  flows.md  (plain English)"]
-    REG["📋 screens.json  control IDs, states,  test data"]
-    CLAUDE["🤖 Claude generates  flows/*.json  (step-by-step metadata)"]
-    RUNNER["▶️ Flow Runner  executes deterministically  — no AI needed"]
-    RESULT["📊 Results  ✓ pass / ✗ fail  + snapshots"]
-
-    DEV --> CLAUDE
-    REG --> CLAUDE
-    CLAUDE --> RUNNER --> RESULT
-
-    style DEV fill:#475569,color:#fff,stroke:none
-    style REG fill:#475569,color:#fff,stroke:none
-    style CLAUDE fill:#7c3aed,color:#fff,stroke:none
-    style RUNNER fill:#d97706,color:#fff,stroke:none
-    style RESULT fill:#059669,color:#fff,stroke:none
-```
-
-Write tests in plain English:
-
-```markdown
-## login happy path
-log in with valid user, verify dashboard loads with flights
-
-## offline recovery
-app: log in, verify dashboard loaded
-sim: toggle offline mode on Device 1
-app: click refresh, verify error shows
-```
-
-Claude converts these to deterministic JSON. Run without Claude:
-
-```bash
-dotnet run --project FlowRunner -- ./flows/
-```
-
-## Component Dependencies
-
-```mermaid
-graph BT
-    SHARED["📦 Shared  (.NET Standard 2.0)  Models, ISpyService"]
-    SPY["👁️ Spy  (.NET Standard 2.0)  SpyServer, UWPMapper,  ActionExecutor"]
-    MCP["⚙️ MCP Server  (.NET 10)  SpyTools, BuildTools,  RoslynTools, Prompts"]
-    FR["▶️ Flow Runner  (.NET 10)  JSON executor"]
-    UWP["🖼️ UWP App Head  (your app)"]
-
-    SPY --> SHARED
-    MCP --> SHARED
-    FR --> SHARED
-    UWP -.->|"project ref  (DEBUG only)"| SPY
-
-    MCP -.->|"named pipe"| SPY
-    FR -.->|"named pipe"| SPY
-
-    style SHARED fill:#475569,color:#fff,stroke:none
-    style SPY fill:#059669,color:#fff,stroke:none
-    style MCP fill:#2563eb,color:#fff,stroke:none
-    style FR fill:#d97706,color:#fff,stroke:none
-    style UWP fill:#7c3aed,color:#fff,stroke:none
-```
-
-## Build Order
-
-```mermaid
-graph LR
-    subgraph MORNING["Morning ~3h"]
-        S1["1️⃣ Shared  models"]
-        S2["2️⃣ Spy  project"]
-        S3["3️⃣ Wire into  UWP app"]
-        S4["4️⃣ MCP Server  spy + build tools"]
-        S5["5️⃣ Register with  Claude Code"]
-        S1 --> S2 --> S3 --> S4 --> S5
-    end
-
-    subgraph AFTERNOON["Afternoon ~3h"]
-        S6["6️⃣ Write  CLAUDE.md"]
-        S7["7️⃣ Write  skill files"]
-        S8["8️⃣ Capture  baselines"]
-        S9["9️⃣ Migrate  first screen"]
-        S6 --> S7 --> S8 --> S9
-    end
-
-    S5 --> S6
-
-    subgraph LATER["Build Later"]
-        L1["Flow Runner"]
-        L2["Roslyn Tools"]
-        L3["screens.json"]
-    end
-
-    S9 -.-> LATER
-
-    style MORNING fill:#1e1b4b,color:#fff,stroke:#4338ca
-    style AFTERNOON fill:#052e16,color:#fff,stroke:#16a34a
-    style LATER fill:#451a03,color:#fff,stroke:#d97706
-```
-
-Follow [REQUIREMENTS.md §10.2](REQUIREMENTS.md#102-build-order--day-1) for the detailed sequence.
-
-## Screen Behavior Analysis
-
-```mermaid
-graph TD
-    XAML["📄 XAML  bindings, controls"]
-    VM["📄 ViewModel  properties, commands,  dependencies"]
-    CB["📄 Code-Behind  event handlers"]
-    SNAP["📸 Snapshots  runtime state"]
-
-    XAML --> STATIC["🔍 Static Analysis  Roslyn + XDocument"]
-    VM --> STATIC
-    CB --> STATIC
-    SNAP --> RUNTIME["👁️ Runtime Observation  actual control states"]
-
-    STATIC --> XREF["🔗 Cross-Reference"]
-    RUNTIME --> XREF
-
-    XREF --> BEH["📋 screen-behaviors.json  WHEN/THEN statements,  untested states, warnings"]
-    BEH -.->|"future"| TESTS["🧪 Unit Tests"]
-
-    style STATIC fill:#2563eb,color:#fff,stroke:none
-    style RUNTIME fill:#059669,color:#fff,stroke:none
-    style XREF fill:#7c3aed,color:#fff,stroke:none
-    style BEH fill:#d97706,color:#fff,stroke:none
-    style TESTS fill:#475569,color:#fff,stroke:none
-```
-
-## Components
-
-| Component | What | Framework |
-|-----------|------|-----------|
-| **Shared** | Abstract control model, interfaces, flow models | .NET Standard 2.0 |
-| **AppSpy** | In-process UWP inspector over named pipe | .NET Standard 2.0 |
-| **MCP Server** | Tool bridge between Claude Code and everything else | .NET 10 |
-| **Flow Runner** | Deterministic UI test executor from JSON metadata | .NET 10 |
-
-## Quick Start
-
-### Prerequisites
-
-- Windows 10/11, Visual Studio 2022 (UWP + Xamarin workloads)
-- .NET 10 SDK, Node.js 18+, Claude Code CLI
-- See [REQUIREMENTS.md §13](REQUIREMENTS.md#13-developer-workstation-prerequisites) for full setup
-
-### 1. Build the toolkit
-
-```bash
-dotnet build migration-toolkit.sln
-```
-
-### 2. Wire spy into your UWP app
-
-Add a project reference to the Spy library in your UWP head project, then in `App.xaml.cs`:
-
-```csharp
-protected override void OnLaunched(LaunchActivatedEventArgs e)
-{
-    #if DEBUG
-        SpyServer.Start();
-    #endif
-    // ... existing code
-}
-```
-
-### 3. Register MCP server with Claude Code
-
-```bash
-claude mcp add migration-tools -- dotnet run --project ./src/McpServer/McpServer.csproj
-```
-
-### 4. Start migrating
-
-Run your app in DEBUG mode, then in Claude Code:
+## Directory Structure
 
 ```
-> Get the visual tree of the running app
-> Snapshot all screens phase=xf
-> Migrate LoginPage.xaml from XF to UWP
+/migration-toolkit/
+├── CLAUDE.md                             ← Project context (12 sections, <4000 tokens)
+├── REQUIREMENTS.md                       ← Full toolkit specification
+├── .claude.json                          ← MCP server registration
+│
+├── .claude/
+│   ├── settings.json                     ← Per-agent rule toggles + snapshot tolerances
+│   ├── agents/                           ← Agent identities
+│   │   ├── reviewer.md                   ← Code review: bugs, perf, anti-patterns
+│   │   └── migrator.md                   ← Migration: MCP tools, snapshot loop, transforms
+│   ├── rules/                            ← Shared rule library (10 files)
+│   │   ├── migration-xf-uwp.md          ← XF→UWP: controls, namespaces, APIs, patterns
+│   │   ├── migration-uwp-winui.md        ← UWP→WinUI: future hop (disabled for migrator)
+│   │   ├── async-await.md
+│   │   ├── thread-management.md
+│   │   ├── autofac.md
+│   │   ├── reactive-extensions.md
+│   │   ├── unused-code.md
+│   │   ├── csharp-best-practices.md
+│   │   ├── simplicity.md
+│   │   └── project-rules.md             ← Your project's custom rules
+│   └── commands/                         ← Slash commands (each activates one agent)
+│       ├── review-changes.md             ← Reviewer: git diff
+│       ├── review-project.md             ← Reviewer: full audit
+│       ├── snapshot-all.md               ← Migrator: capture all screen snapshots
+│       ├── migrate-scan.md               ← Migrator: survey migration surface (read-only)
+│       ├── migrate-xaml.md               ← Migrator: transform one XAML file
+│       ├── migrate-viewmodel.md          ← Migrator: transform one ViewModel
+│       ├── snapshot-diff.md              ← Migrator: compare before/after snapshots
+│       ├── smoke-test.md                 ← Migrator: quick render check per screen
+│       ├── analyze-behaviors.md          ← Migrator: static+runtime behavior analysis
+│       └── runsteps.md                   ← Migrator: interactive debug mode
+│
+├── skills/                               ← Workflow procedures (developer fills in)
+│   ├── snapshot-all-screens.md           ← Screen list, navigation, states, AutomationIds
+│   ├── migrate-xaml.md                   ← 5-step XAML migration procedure
+│   ├── migrate-viewmodel.md              ← ViewModel migration procedure
+│   ├── smoke-test-all.md                 ← Screen-by-screen smoke test
+│   ├── analyze-screen-behaviors.md       ← Section 8 analysis procedure
+│   └── runsteps.md                       ← Interactive debug conventions
+│
+├── flows/                                ← Claude-generated flow JSON files
+├── flows.md                              ← Developer-written natural language test flows
+├── screens.json                          ← Screen registry (auto-gen from snapshots)
+├── screens-input.json                    ← Screen-to-file mapping for behavior analysis
+├── scopes.json                           ← Project path mapping for build scopes
+│
+└── src/                                  ← Toolkit C# code (built per REQUIREMENTS.md)
+    ├── Shared/                           ← .NET Standard 2.0 models + ISpyService
+    ├── Spy/                              ← .NET Standard 2.0 in-process inspector
+    ├── McpServer/                        ← .NET 10 MCP server (tools + prompts)
+    └── FlowRunner/                       ← .NET 10 flow executor
 ```
 
-## Key Files
+## Commands
 
-| File | Who Writes | Purpose |
-|------|-----------|---------|
-| `CLAUDE.md` | Developer | Project rules, control mappings, gotchas — Claude reads every session |
-| `skills/*.md` | Developer | Step-by-step workflows (snapshot-all, migrate-xaml, etc.) |
-| `flows.md` | Developer | Plain English test descriptions, one line each |
-| `screens.json` | Claude → Developer reviews | Screen registry — controls, states, test data |
-| `scopes.json` | Developer | Maps build scope names to project paths |
-| `flows/*.json` | Claude | Flow runner metadata from `flows.md` + `screens.json` |
-| `screen-behaviors.json` | Claude | Behavioral spec from code analysis + runtime snapshots |
+### Reviewer Agent
 
-## Project Structure
+| Command | Scope | Purpose |
+|---------|-------|---------|
+| `/review-changes` | Git diff | Find bugs/anti-patterns in changed code |
+| `/review-project` | Full codebase | Audit with scores and action plan |
+
+### Migrator Agent
+
+| Command | Scope | Purpose | MCP Tools Used |
+|---------|-------|---------|----------------|
+| `/snapshot-all` | All screens | Capture baseline or post-migration snapshots | SpyTools |
+| `/migrate-scan` | Project or file | Survey XF API surface, estimate effort | RoslynTools |
+| `/migrate-xaml` | One XAML file | Transform XF XAML → UWP XAML | RoslynTools → BuildTools → SpyTools |
+| `/migrate-viewmodel` | One ViewModel | Transform XF VM → UWP VM | RoslynTools → BuildTools → SpyTools |
+| `/snapshot-diff` | Snapshot pairs | Compare xf vs uwp snapshots for regressions | SpyTools |
+| `/smoke-test` | All screens | Quick render verification | SpyTools |
+| `/analyze-behaviors` | Per screen | Static + runtime behavioral specification | RoslynTools + SpyTools |
+| `/runsteps` | Interactive | Step-by-step spy interaction for debugging | SpyTools |
+
+### Recommended Migration Workflow
 
 ```
-migration-toolkit/
-├── src/
-│   ├── Shared/          # Models, interfaces (.NET Standard 2.0)
-│   ├── Spy/             # In-process UWP inspector (.NET Standard 2.0)
-│   ├── McpServer/       # MCP tools + Roslyn analysis (.NET 10)
-│   └── FlowRunner/      # JSON flow executor (.NET 10)
-├── skills/              # Workflow instructions for Claude
-├── flows/               # Generated flow JSON files
-├── CLAUDE.md            # Project knowledge base
-├── REQUIREMENTS.md      # Full specification (100 requirements)
-├── screens.json         # Screen registry
-├── flows.md             # Natural language test descriptions
-└── .claude.json         # MCP server registration
+1.  /migrate-scan              ← Understand the XF API surface and effort
+2.  /snapshot-all phase=xf     ← Capture baseline snapshots
+3.  /analyze-behaviors         ← Understand screen behaviors (optional but valuable)
+4.  /migrate-xaml LoginPage    ← Migrate simplest screen first
+5.  /snapshot-diff             ← Verify migration didn't break anything
+6.  /migrate-viewmodel LoginVM ← Then migrate its ViewModel
+7.  /snapshot-diff             ← Verify again
+8.  /smoke-test                ← Quick check all screens still render
+9.  /review-changes            ← Code quality check before committing
+10. Repeat 4-9 for each screen
 ```
 
-## Documentation
+## Architecture: How the Pieces Connect
 
-- **[REQUIREMENTS.md](REQUIREMENTS.md)** — Complete specification with all 100 requirements, code samples, and build instructions
-- **[CLAUDE.md](CLAUDE.md)** — Project-specific rules and mappings (created per-project)
-- **[flows.md](flows.md)** — Test flow descriptions (created per-project)
+```
+CLAUDE.md (shared project context — 12 sections, both agents read this)
+    │
+    ├─→ .claude/agents/           WHO — agent identity + behavior
+    │   ├── reviewer.md              Reports findings, never modifies code
+    │   └── migrator.md              Executes migration loop via MCP tools
+    │                                   ↕ knows about: SpyTools, BuildTools,
+    │                                     RoslynTools, TestTools
+    │
+    ├─→ .claude/rules/            WHAT — shared knowledge library
+    │   ├── migration-xf-uwp.md      XF→UWP control/namespace/API mappings
+    │   └── (9 more rule files)       async, threading, autofac, rx, etc.
+    │
+    ├─→ .claude/commands/         SCOPE — slash commands trigger workflows
+    │   ├── migrate-xaml.md          "Load migrator agent → read skill → use MCP tools"
+    │   └── (9 more commands)
+    │
+    ├─→ skills/                   HOW — step-by-step procedures
+    │   ├── migrate-xaml.md          "1. Analyze 2. Transform 3. Build 4. Verify"
+    │   └── (5 more skills)          Developer fills in AutomationIds + navigation
+    │
+    └─→ .claude.json              MCP — connects Claude Code to the toolkit server
+        └── migration-tools          dotnet run McpServer → stdio JSON-RPC
+                │
+                ├── SpyTools         Eyes: GetVisualTree, SaveSnapshot, DoAction
+                ├── BuildTools       Hands: Build, GetDiagnostics, ListFiles
+                ├── RoslynTools      Analysis: AnalyzeClass, FindMigrationSurface
+                └── TestTools        Testing: RunTests, RunFlow
+```
+
+### Flow: What happens when you type `/migrate-xaml`
+
+```
+1. Claude Code reads .claude/commands/migrate-xaml.md
+2. Command says: "Load .claude/agents/migrator.md"
+   → Claude adopts migrator identity (migration loop, output formats)
+3. Command says: "Load rules from settings.json → agents.migrator.rules"
+   → Claude reads migration-xf-uwp.md (control/API mappings)
+4. Command says: "Read skills/migrate-xaml.md"
+   → Claude gets the 5-step procedure
+5. Command defines the workflow:
+   → Analyze (RoslynTools) → Plan → Transform → Build (BuildTools) → Verify (SpyTools)
+6. Claude executes, using MCP tools at each step
+```
+
+## What You Write vs What Claude Writes
+
+| Artifact | Who | Notes |
+|----------|-----|-------|
+| `CLAUDE.md` | Developer | Project-specific mappings, rules, gotchas |
+| `skills/*.md` | Developer | Screen lists, AutomationIds, navigation |
+| `flows.md` | Developer | Natural language test descriptions |
+| `screens-input.json` | Developer | Screen-to-file mappings |
+| `scopes.json` | Developer | Project path mappings |
+| `.claude/rules/project-rules.md` | Developer | Custom code review rules |
+| `screens.json` | Claude (draft) → Developer (review) | Auto-generated from snapshots |
+| `flows/*.json` | Claude | Generated from screens.json + flows.md |
+| `screen-behaviors.json` | Claude | Generated from analysis procedure |
+| Migrated source code | Claude | The whole point |
+
+## Per-Agent Rule Configuration
+
+In `settings.json`, each agent enables different rules:
+
+| Rule | Reviewer | Migrator | Why |
+|------|----------|----------|-----|
+| `migration-xf-uwp` | ❌ | ✅ | Primary migration knowledge |
+| `migration-uwp-winui` | ✅ | ❌ | Future hop, not during XF→UWP |
+| `async-await` | ✅ | ✅ | Both care about async correctness |
+| `thread-management` | ✅ | ✅ | Both care about thread safety |
+| `autofac` | ✅ | ❌ | Reviewer checks DI, migrator doesn't |
+| `reactive-extensions` | ✅ | ❌ | Reviewer checks Rx, migrator doesn't |
+| `unused-code` | ✅ | ❌ | Cleanup phase, not during migration |
+| `csharp-best-practices` | ✅ | ✅ | Both fix obvious issues |
+| `simplicity` | ✅ | ❌ | Refactoring phase, not during migration |
+| `project-rules` | ✅ | ✅ | Project DO/DON'T rules always apply |
+
+## Adding a Third Agent
+
+1. Create `.claude/agents/your-agent.md`
+2. Add entry in `settings.json` → `agents`
+3. Create `.claude/commands/your-command.md` referencing the new agent
+4. Optionally add rule files in `.claude/rules/` and skill files in `skills/`
+
+## Acknowledgements
+
+This project uses sample code from [FlyMe](https://github.com/davidortinau/FlyMe/) by [David Ortinau].
