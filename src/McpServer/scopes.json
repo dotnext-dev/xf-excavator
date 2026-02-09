@@ -1,0 +1,7 @@
+{
+  "UI": "target-app/FlyMe.UWP/FlyMe.UWP.csproj",
+  "Shared": "src/Shared/Shared.csproj",
+  "Spy": "src/Spy/Spy.csproj",
+  "App": "target-app/FlyMe/FlyMe.csproj",
+  "All": "target-app/FlyMe.sln"
+}

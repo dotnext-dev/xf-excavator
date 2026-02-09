@@ -10,7 +10,7 @@
     BackgroundColor="#D8D8D8"
     Title="Notifications"
     x:Class="FlyMe.Views.NotificationsPage">
-    <CollectionView>
+    <CollectionView AutomationId="NotificationsCollectionView">
         <CollectionView.ItemsLayout>
             <LinearItemsLayout
                 Orientation="Vertical"

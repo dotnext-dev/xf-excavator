@@ -38,6 +38,7 @@
                 VerticalOptions="Center"
                 Margin="30,0">
                 <ImageButton
+                    AutomationId="LogoImageButton"
                     Source="{FontImage 
                                 FontFamily={StaticResource FontAwesome}, 
                                 Glyph={x:Static local:IconFont.PaperPlane}, 
@@ -51,11 +52,14 @@
                     "
                     Clicked="ImageButton_Clicked"/>
                 <Entry
+                    AutomationId="UsernameEntry"
                     Placeholder="Username" />
                 <Entry
+                    AutomationId="PasswordEntry"
                     Placeholder="Password"
                     IsPassword="True" />
                 <Button
+                    AutomationId="LoginButton"
                     Text="Login"
                     Clicked="Button_Clicked" />
                 <StackLayout
@@ -63,9 +67,11 @@
                     Spacing="0"
                     HorizontalOptions="Center">
                     <CheckBox
+                        AutomationId="RememberMeCheckBox"
                         x:Name="RememberCheck"
                         VerticalOptions="Center"/>
                     <Label
+                        AutomationId="RememberMeLabel"
                         Text="Remember Me"
                         VerticalTextAlignment="Center" />
                 </StackLayout>

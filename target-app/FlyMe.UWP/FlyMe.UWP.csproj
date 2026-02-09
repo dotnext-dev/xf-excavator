@@ -183,6 +183,10 @@
       <Project>{CFF80D91-B8B2-4638-A717-89D286EE1633}</Project>
       <Name>FlyMe</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\src\Spy\Spy.csproj">
+      <Project>{4AD35DCB-C0D1-4B54-B168-8B3E49E9C74E}</Project>
+      <Name>MigrationToolkit.Spy</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="Assets\Fonts\fa-solid-900.ttf" />

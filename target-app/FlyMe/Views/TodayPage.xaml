@@ -44,13 +44,13 @@
            TextColor="{StaticResource PrimaryColor}"
            HorizontalTextAlignment="Center"
            FontSize="32"/>
-            <DatePicker Margin="20" Date="{Binding HomeUntilDate}"
+            <DatePicker AutomationId="HomeUntilDatePicker" Margin="20" Date="{Binding HomeUntilDate}"
                 TextColor="{DynamicResource TextColor}"/>
-            <Button Text="Find a Destination" 
+            <Button AutomationId="FindDestinationButton" Text="Find a Destination" 
             Command="{Binding FindLocationsCommand}"
             class="actionButton"/>
 
         </FlexLayout>
-        <CollectionView Grid.Row="1"/>
+        <CollectionView AutomationId="DestinationsCollectionView" Grid.Row="1"/>
     </Grid>
 </ContentPage>

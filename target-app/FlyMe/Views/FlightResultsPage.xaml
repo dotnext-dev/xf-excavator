@@ -18,6 +18,7 @@
         </Grid.RowDefinitions>
         
         <CollectionView
+            AutomationId="FlightResultsCollectionView"
             x:Name="cv"
             ItemsSource="{Binding FlightsToDisplay}"
             RemainingItemsThreshold="4"
@@ -38,6 +39,7 @@
         </CollectionView>
 
         <ActivityIndicator
+            AutomationId="LoadingIndicator"
             Color="{StaticResource PrimaryColor}"
             IsRunning="{Binding IsBusy}"
             HorizontalOptions="Center"
