@@ -68,6 +68,7 @@
             Grid.Row="0" Grid.RowSpan="2">
             <StackLayout>
                 <CarouselView
+                    AutomationId="BannersCarouselView"
                     Margin="0,-20,0,0"
                     HeightRequest="230"
                     PeekAreaInsets="40" 
@@ -116,7 +117,7 @@
                         </Label.FormattedText>
                     </Label>
 
-<xct:Expander FlexLayout.Basis="100%" Margin="0,0,0,10">
+<xct:Expander AutomationId="NextFlightExpander" FlexLayout.Basis="100%" Margin="0,0,0,10">
     <xct:Expander.Header>
         <StackLayout Orientation="Horizontal" Margin="0,0,0,6">
         <Image Source="{StaticResource IconTodaySm}">
@@ -176,6 +177,7 @@
                         FlexLayout.AlignSelf="End" />
 
                     <Label
+                        AutomationId="MilesValueLabel"
                         Text="1,562,098"
                         FontSize="32"
                         TextColor="White"
@@ -197,6 +199,7 @@
                             CornerRadius="15" />
 
                         <BoxView
+                            AutomationId="MilesProgressBar"
                             x:Name="MilesProgressBar"
                             BackgroundColor="SteelBlue"
                             WidthRequest="0"
@@ -236,6 +239,7 @@
                             CornerRadius="15" />
 
                         <BoxView
+                            AutomationId="SegmentsProgressBar"
                             x:Name="SegmentsProgressBar"
                             BackgroundColor="SteelBlue"
                             WidthRequest="0"
@@ -370,6 +374,7 @@
                         FlexLayout.Basis="100%" />
 
                     <Button
+                        AutomationId="BookFlightButton"
                         FlexLayout.Basis="100%"
                         Clicked="Button_Clicked"
                         IsEnabled="True"

@@ -23,7 +23,7 @@
             Grid.Row="0"
             BackgroundColor="#5561F9" />
 
-        <CollectionView Grid.Row="0" Margin="15,0,0,40" HorizontalOptions="Fill">
+        <CollectionView AutomationId="FlightTypesCollectionView" Grid.Row="0" Margin="15,0,0,40" HorizontalOptions="Fill">
             <CollectionView.ItemsLayout>
                 <LinearItemsLayout Orientation="Horizontal"    
                                    SnapPointsType="MandatorySingle"
@@ -79,6 +79,7 @@
                     AlignContent="Start">
 
                     <Entry
+                        AutomationId="FromLocationEntry"
                         x:Name="FromLabel"
                         Placeholder="From" />
                     <BoxView
@@ -96,6 +97,7 @@
                     <BoxView
                         class="spacer-bar" />
                     <Entry
+                        AutomationId="ToLocationEntry"
                         Placeholder="To" />
 
                     <BoxView
@@ -131,6 +133,7 @@
                         </Label>
 
                         <DatePicker
+                            AutomationId="DepartDatePicker"
                             Grid.Row="1"
                             Margin="0,-16,0,0" />
 
@@ -150,6 +153,7 @@
                         </Label>
 
                         <DatePicker
+                            AutomationId="ReturnDatePicker"
                             Grid.Row="1"
                             Grid.Column="1"
                             Margin="0,-16,0,0" />
@@ -212,6 +216,7 @@
                     </Grid>
 
                     <Button
+                        AutomationId="AddPassengerButton"
                         FlexLayout.Basis="100%"
                         Text="+ Add Passenger"
                         BorderColor="#66060B06"
@@ -228,6 +233,7 @@
                         Orientation="Horizontal"
                         Spacing="4">
                         <CheckBox
+                            AutomationId="NonStopCheckBox"
                             VerticalOptions="Center"
                             Color="#255EF5" />
                         <Label
@@ -236,6 +242,7 @@
                     </StackLayout>
 
                     <Button
+                        AutomationId="SearchFlightsButton"
                         FlexLayout.Basis="100%"
                         BackgroundColor="#255EF5"
                         HeightRequest="44"

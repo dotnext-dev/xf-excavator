@@ -54,6 +54,7 @@
     </FlyoutItem>
 
     <MenuItem
+        AutomationId="LogoutMenuItem"
         Text="Logout"
         Clicked="MenuItem_Clicked"
         IconImageSource="{FontImage FontFamily={StaticResource FontAwesome},

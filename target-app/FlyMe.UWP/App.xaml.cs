@@ -73,6 +73,10 @@ namespace FlyMe.UWP
             }
             // Ensure the current window is active
             Window.Current.Activate();
+
+#if DEBUG
+            MigrationToolkit.Spy.SpyServer.Start();
+#endif
         }
 
         /// <summary>
