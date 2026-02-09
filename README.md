@@ -183,3 +183,7 @@ In `settings.json`, each agent enables different rules:
 2. Add entry in `settings.json` → `agents`
 3. Create `.claude/commands/your-command.md` referencing the new agent
 4. Optionally add rule files in `.claude/rules/` and skill files in `skills/`
+
+## Acknowledgements
+
+This project uses sample code from [FlyMe](https://github.com/davidortinau/FlyMe/) by [David Ortinau].
